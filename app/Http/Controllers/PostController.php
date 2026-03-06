@@ -21,7 +21,7 @@ class PostController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        return Post()->all();
+        return Post::all();
     }
 
     /**
@@ -32,10 +32,10 @@ class PostController extends Controller implements HasMiddleware
         $fields = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
-            'password' => 'required'
         ]);
 
-        $post = Post::create($fields);
+        // $post = Post::create($fields);
+        $post = $request->user()->posts()->create($fields);
 
         return $post;
     }
@@ -53,7 +53,11 @@ class PostController extends Controller implements HasMiddleware
      */
     public function update(Request $request, Post $post)
     {
-        Gate::authorize('modify', $post);
+        // Gate::authorize('update', $post);
+        if ($post->user_id !== auth()->id()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         $fields = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required'

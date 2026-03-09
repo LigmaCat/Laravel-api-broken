@@ -16,11 +16,21 @@ class CommentController extends Controller implements HasMiddleware
         ];
     }
     // List all comments for a specific post
-    public function index(Post $post)
-    {
-        // Just return all comments for this post
-        return $post->comments;
-    }
+public function index($postId)
+{
+    $user = auth()->user();
+
+    $comments = Comment::where('post_id', $postId)
+        ->where(function($q) use ($user) {
+            $q->whereNull('flagged_at');
+            if ($user) {
+                $q->orWhereHas('post', fn($q2) => $q2->where('user_id', $user->id));
+            }
+        })
+        ->get();
+
+    return response()->json($comments);
+}
 
     // Store a new comment for a specific post
     public function store(Request $request, Post $post)
@@ -79,5 +89,20 @@ class CommentController extends Controller implements HasMiddleware
 
         return response()->json(['message' => 'Comment deleted']);
     }
+
+    public function flag(Comment $comment)
+{
+    $post = $comment->post;
+
+    if ($post->user_id !== auth()->id()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $comment->update([
+        'flagged_at' => now(),
+    ]);
+
+    return $comment;
+}
 
 }

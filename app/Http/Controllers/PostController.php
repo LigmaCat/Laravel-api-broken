@@ -16,44 +16,31 @@ class PostController extends Controller implements HasMiddleware
         ];
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return Post::all();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $fields = $request->validate([
-            'title' => 'required|max:255',
-            'body' => 'required',
-        ]);
+public function store(Request $request)
+{
+    $fields = $request->validate([
+        'title' => 'required|max:255',
+        'body' => 'required',
+        'post_status_id' => 'exists:post_statuses,id'
+    ]);
 
-        // $post = Post::create($fields);
-        $post = $request->user()->posts()->create($fields);
+    $post = $request->user()->posts()->create($fields);
 
-        return $post;
-    }
+    return $post;
+}
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Post $post)
     {
         return $post;
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Post $post)
     {
-        // Gate::authorize('update', $post);
         if ($post->user_id !== auth()->id()) {
         return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -68,13 +55,26 @@ class PostController extends Controller implements HasMiddleware
         return $post;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Post $post)
     {
         Gate::authorize('modify', $post);
         $post->delete();
         return ['message' => "The post ($post->id) has been deleted"];
     }
+    
+public function changeStatus(Request $request, Post $post)
+{
+    if ($post->user_id !== auth()->id()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $fields = $request->validate([
+        'post_status_id' => 'required|exists:post_statuses,id'
+    ]);
+
+    $post->update($fields);
+
+    return $post;
+}
+
 }

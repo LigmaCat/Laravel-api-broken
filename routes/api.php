@@ -23,3 +23,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 //comment
 
 Route::apiResource('posts.comments', CommentController::class)->middleware('auth:sanctum');;
+
+// post statuses
+
+Route::patch('/posts/{post}/status', [PostController::class, 'changeStatus'])
+    ->middleware('auth:sanctum');
+
+// flag 
+
+Route::patch('/comments/{comment}/flag', [CommentController::class, 'flag'])
+    ->middleware('auth:sanctum');

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Comment extends Model
 {
 
-    protected $fillable =[ 'content', 'user_id']; 
+    protected $fillable =[ 'content', 'user_id', 'flagged_at']; 
 
     public function post() {
         return $this->belongsTo(Post::class);
